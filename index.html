@@ -1,0 +1,3260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Davis Family Tree - Interactive</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary-color: #10b981;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-light: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #60a5fa;
+            --primary-dark: #3b82f6;
+            --secondary-color: #34d399;
+            --background-color: #0f172a;
+            --surface-color: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --border-light: #475569;
+            --shadow-light: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        .header {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-light);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '🌳';
+            font-size: 1.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle, .toc-toggle, .github-link {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .theme-toggle:hover, .toc-toggle:hover, .github-link:hover {
+            background: var(--border-light);
+            transform: translateY(-1px);
+        }
+
+        .github-link {
+            color: var(--primary-color);
+        }
+
+        .github-link:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .stats-bar {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+        }
+
+        .stats-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .info-section {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+        }
+
+        .info-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, var(--surface-color), var(--border-light));
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-icon {
+            font-size: 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .info-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .info-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .info-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .info-button.primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .info-button.primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .info-button.secondary {
+            background: var(--border-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-button.secondary:hover {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .sidebar {
+            background: var(--surface-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            height: calc(100vh - 240px);
+            position: sticky;
+            top: 120px;
+            transition: var(--transition);
+            overflow-y: auto;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: sticky;
+            top: 0;
+            background: var(--surface-color);
+            padding: 0.5rem 0;
+            z-index: 10;
+        }
+
+        .sidebar-title::before {
+            content: '📚';
+            font-size: 1.25rem;
+        }
+
+        .sidebar-content {
+            padding-bottom: 2rem;
+        }
+
+        .toc-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .toc-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .toc-item {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            margin: 0.25rem 0;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .toc-item:hover {
+            background: var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .toc-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .toc-branch {
+            margin-left: 1rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--border-light);
+        }
+
+        .content {
+            min-height: 100vh;
+        }
+
+        .tree-container {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .generation-section {
+            margin-bottom: 3rem;
+        }
+
+        .generation-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+        }
+
+        .generation-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .generation-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .tree-node {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .person-card {
+            background: var(--surface-color);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .person-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-large);
+            border-color: var(--primary-color);
+        }
+
+        .person-card.expanded {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .person-card.living {
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .person-card.deceased {
+            border-left: 4px solid var(--text-muted);
+        }
+
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .person-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge.living {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        [data-theme="dark"] .status-badge.living {
+            background: #14532d;
+            color: #22c55e;
+        }
+
+        .status-badge.deceased {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        [data-theme="dark"] .status-badge.deceased {
+            background: #475569;
+            color: #94a3b8;
+        }
+
+        .person-details {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .person-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .parent-link, .child-link {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+            transition: var(--transition);
+            display: inline-block;
+            padding: 2px 4px;
+            border-radius: 3px;
+            position: relative;
+            z-index: 10;
+            user-select: none;
+        }
+
+        .parent-link:hover {
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .child-link:hover {
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .parent-link:active {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(59, 130, 246, 0.4);
+        }
+
+        .child-link:active {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(245, 158, 11, 0.4);
+        }
+
+        .parent-link.clicked {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            animation: parentClickPulse 0.6s ease-out;
+        }
+
+        .child-link.clicked {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            animation: childClickPulse 0.6s ease-out;
+        }
+
+        @keyframes parentClickPulse {
+            0% {
+                background: rgba(59, 130, 246, 0.3);
+                transform: scale(0.95);
+            }
+            50% {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                transform: scale(1.05);
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            }
+            100% {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes childClickPulse {
+            0% {
+                background: rgba(245, 158, 11, 0.3);
+                transform: scale(0.95);
+            }
+            50% {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                transform: scale(1.05);
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+            }
+            100% {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                transform: scale(1);
+            }
+        }
+
+        .children-list {
+            background: var(--border-light);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .children-list-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .children-list .child-link {
+            display: inline-block;
+            margin-right: 0.5rem;
+            margin-bottom: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface-color);
+            border-radius: 0.25rem;
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            z-index: 10;
+            user-select: none;
+        }
+
+        .children-list .child-link:hover {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: #f59e0b;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .children-list .child-link:active {
+            transform: translateY(0) scale(0.95);
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+
+        .children-list .child-link.clicked {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            animation: childClickPulse 0.6s ease-out;
+        }
+
+
+
+        .person-card.highlighted {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+            animation: highlightPulse 2s ease-in-out;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { 
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+            }
+            50% { 
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.4);
+            }
+        }
+
+        .expand-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .children-container {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 2px dashed var(--border-color);
+            position: relative;
+        }
+
+        .children-container::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary-color), transparent);
+        }
+
+        .children-container.hidden {
+            display: none;
+        }
+
+        .children-header {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--border-light);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .spouse-connection {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .spouse-connector {
+            color: #ef4444;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .spouse-info {
+            background: var(--border-light);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .notes {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+
+        [data-theme="dark"] .notes {
+            background: #451a03;
+            color: #fbbf24;
+        }
+
+        .generation-badge {
+            position: absolute;
+            top: -0.5rem;
+            left: 1rem;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .floating-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+
+        .action-btn {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-large);
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary-dark);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 120px;
+                left: 1rem;
+                width: 280px;
+                z-index: 200;
+                transform: translateX(-100%);
+                opacity: 0;
+                pointer-events: none;
+                height: calc(100vh - 140px);
+            }
+            
+            .sidebar.visible {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .header-controls .github-link,
+            .header-controls .toc-toggle,
+            .header-controls .theme-toggle {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .stats-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .info-section {
+                padding: 1rem;
+            }
+
+            .info-actions {
+                flex-direction: column;
+            }
+
+            .info-button {
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .children-container {
+                margin-left: 1rem;
+                padding-left: 0.5rem;
+            }
+            
+            .floating-actions {
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+
+        /* Scrollbar styles for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">Davis Family Tree</div>
+            <div class="header-controls">
+                <a href="https://jordonhgriffin.github.io/" target="_blank" class="github-link" title="Visit Jordon's Portfolio Github">
+                    <span>💼</span>
+                    <span>Jordon's Portfolio</span>
+                </a>
+                <button class="toc-toggle" id="tocToggle">
+                    <span>📚</span>
+                    <span>Table of Contents</span>
+                </button>
+                <button class="theme-toggle" id="themeToggle">
+                    <span id="themeIcon">🌙</span>
+                    <span id="themeText">Dark Mode</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stats-content">
+            <div class="stat-card">
+                <span class="stat-number">153</span>
+                <span class="stat-label">Total Members</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">8</span>
+                <span class="stat-label">Generations</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">118</span>
+                <span class="stat-label">Living</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">34</span>
+                <span class="stat-label">Deceased</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-content">
+            <div class="info-card">
+                <div class="info-header">
+                    <div class="info-icon">📝</div>
+                    <div class="info-title">Add New Family Members</div>
+                </div>
+                <div class="info-text">
+                    Help us keep the Davis family tree complete and up-to-date! If you know of family members who aren't listed here, please use our family member submission form. I will review all submissions and update the site as necessary.
+                    <br><br>
+                    <strong>Need access to the full data?</strong> Message me if you'd like to see the complete Google Sheet with all family information.
+                </div>
+                <div class="info-actions">
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLScxFT2VlOwGZVhRFRkoQUtr905UF5oiVrUcSST4j9iIkRLE2g/viewform" target="_blank" class="info-button primary">
+                        📝 Submit New Family Member
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-title">Table of Contents</div>
+            
+            <div class="sidebar-content">
+                <div class="toc-section">
+                    <div class="toc-section-title">Generations</div>
+                    <a class="toc-item" data-target="generation-1">Generation 1 - Richard & Caroline Davis</a>
+                    <a class="toc-item" data-target="generation-2">Generation 2 - The 8 Children</a>
+                    <a class="toc-item" data-target="generation-3">Generation 3 - Charles Davis Line</a>
+                    <a class="toc-item" data-target="generation-4">Generation 4 - Charlie Davis Line</a>
+                    <a class="toc-item" data-target="generation-5">Generation 5 - The Branches</a>
+                    <a class="toc-item" data-target="generation-6">Generation 6 - Modern Era</a>
+                    <a class="toc-item" data-target="generation-7">Generation 7 - Current Generation</a>
+                    <a class="toc-item" data-target="generation-8">Generation 8 - The Next Generation</a>
+                </div>
+                
+                <div class="toc-section">
+                    <div class="toc-section-title">Major Family Branches</div>
+                    <a class="toc-item" data-target="mae-olive-griffin">Griffin Branch (Mae Olive)</a>
+                    <a class="toc-item" data-target="evelyn-davis-mars">Mars/Mays Branch</a>
+                    <a class="toc-item" data-target="rosie-davis-horne">Horne Branch</a>
+                    <a class="toc-item" data-target="hettie-davis-rush">Rush/Wilson Branch</a>
+                    <a class="toc-item" data-target="pearlie-davis-perkins">Perkins Branch</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search family members...">
+            </div>
+
+            <div class="tree-container" id="treeContainer">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Loading family tree...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-actions">
+        <button class="action-btn" id="scrollToTop" title="Scroll to Top">
+            ⬆️
+        </button>
+        <button class="action-btn" id="scrollToBottom" title="Scroll to Bottom">
+            ⬇️
+        </button>
+    </div>
+
+    <script>
+        // Complete family tree data from CSV - All 152 members
+        const familyData = {
+            "richard-davis": {
+                name: "Richard Davis",
+                generation: 1,
+                status: "deceased",
+                spouse: "Caroline Davis",
+                children: ["charles-davis", "henry-davis", "jennings-davis", "mary-davis-2", "patsy-davis-2", "pete-davis", "porter-davis", "richard-davis-jr"],
+                childrenCount: 8,
+                details: "Founding father of the Davis family line"
+            },
+            
+            // Generation 2 - Children of Richard & Caroline Davis
+            "charles-davis": {
+                name: "Charles Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: ["abraham-davis", "amanda-davis", "caroline-davis-3", "charlie-davis", "ellen-davis", "jeff-davis", "jim-davis", "joe-davis", "marie-davis", "patsy-davis-3", "rachel-davis", "roseanna-davis", "viola-davis"],
+                childrenCount: 13,
+                details: "Son of Richard & Caroline Davis, father of 13 children"
+            },
+            "henry-davis": {
+                name: "Henry Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Richard & Caroline Davis"
+            },
+            "jennings-davis": {
+                name: "Jennings Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Richard & Caroline Davis"
+            },
+            "mary-davis-2": {
+                name: "Mary Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Richard & Caroline Davis"
+            },
+            "patsy-davis-2": {
+                name: "Patsy Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Richard & Caroline Davis"
+            },
+            "pete-davis": {
+                name: "Pete Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Richard & Caroline Davis"
+            },
+            "porter-davis": {
+                name: "Porter Davis",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Richard & Caroline Davis"
+            },
+            "richard-davis-jr": {
+                name: "Richard Davis Jr.",
+                generation: 2,
+                status: "deceased",
+                parent: "Richard & Caroline Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Richard & Caroline Davis"
+            },
+            
+            // Generation 3 - Children of Charles Davis
+            "abraham-davis": {
+                name: "Abraham Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Charles Davis"
+            },
+            "amanda-davis": {
+                name: "Amanda Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "caroline-davis-3": {
+                name: "Caroline Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "charlie-davis": {
+                name: "Charlie Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: ["anderson-davis", "evelyn-davis-mars", "gertha-davis-carter", "hettie-davis-rush", "james-r-davis", "mae-olive-griffin", "merlene-austin", "mildred-tartt", "otis-davis", "pearlie-davis-perkins", "rosie-davis-horne"],
+                childrenCount: 11,
+                details: "Son of Charles Davis, key figure in the Davis family tree"
+            },
+            "ellen-davis": {
+                name: "Ellen Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "jeff-davis": {
+                name: "Jeff Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Charles Davis"
+            },
+            "jim-davis": {
+                name: "Jim Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Charles Davis"
+            },
+            "joe-davis": {
+                name: "Joe Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Charles Davis"
+            },
+            "marie-davis": {
+                name: "Marie Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "patsy-davis-3": {
+                name: "Patsy Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "rachel-davis": {
+                name: "Rachel Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "roseanna-davis": {
+                name: "Roseanna Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            "viola-davis": {
+                name: "Viola Davis",
+                generation: 3,
+                status: "deceased",
+                parent: "Charles Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charles Davis"
+            },
+            
+            // Generation 4 - Children of Charlie Davis
+            "anderson-davis": {
+                name: "Anderson Davis",
+                generation: 4,
+                status: "deceased",
+                parent: "Charlie Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Charlie Davis"
+            },
+            "evelyn-davis-mars": {
+                name: "Evelyn Davis Mars",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                born: "March 14, 1948",
+                children: ["cedric-mars", "deidra-mars-mays"],
+                childrenCount: 2,
+                details: "Daughter of Charlie Davis, living member of the family"
+            },
+            "gertha-davis-carter": {
+                name: "Gertha R. Davis Carter",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                children: ["deandra-carter-bryson"],
+                childrenCount: 1,
+                details: "Daughter of Charlie Davis"
+            },
+            "hettie-davis-rush": {
+                name: "Hettie Marie Davis Rush",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                children: ["angeline-wilson-collins", "cassandra-wilson-thompson", "eddie-wilson-jr"],
+                childrenCount: 3,
+                details: "Daughter of Charlie Davis"
+            },
+            "james-r-davis": {
+                name: "James R. Davis",
+                generation: 4,
+                status: "deceased",
+                parent: "Charlie Davis",
+                children: ["dorothy-davis-ashley"],
+                childrenCount: 1,
+                details: "Son of Charlie Davis"
+            },
+            "mae-olive-griffin": {
+                name: "Mae Olive Griffin",
+                generation: 4,
+                status: "deceased",
+                parent: "Charlie Davis",
+                children: ["albert-lee-griffin", "anette-griffin", "bernard-griffin", "clarence-griffin", "eugene-griffin", "mae-ruthie-griffin", "olive-fairley", "robert-charles-griffin", "rubie-p-brown", "rufus-griffin", "wavis-prince", "willie-j-griffin"],
+                childrenCount: 12,
+                notes: "Griffin Family Matriarch",
+                details: "Daughter of Charlie Davis, Griffin Family Matriarch"
+            },
+            "merlene-austin": {
+                name: "Merlene Austin",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Charlie Davis"
+            },
+            "mildred-tartt": {
+                name: "Mildred Tartt",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                children: ["john-bertrand-tartt", "reginald-tremaine-tartt"],
+                childrenCount: 2,
+                details: "Daughter of Charlie Davis"
+            },
+            "otis-davis": {
+                name: "Otis Davis",
+                generation: 4,
+                status: "deceased",
+                parent: "Charlie Davis",
+                children: ["brenda-davis", "katrina-d-beach", "pamela-hill"],
+                childrenCount: 3,
+                details: "Son of Charlie Davis"
+            },
+            "pearlie-davis-perkins": {
+                name: "Pearlie Ann Davis Perkins",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                children: ["alfred-h-perkins-jr", "gwen-y-perkins-evans", "nicole-cherese-perkins"],
+                childrenCount: 3,
+                details: "Daughter of Charlie Davis"
+            },
+            "rosie-davis-horne": {
+                name: "Rosie Lee Davis Horne",
+                generation: 4,
+                status: "living",
+                parent: "Charlie Davis",
+                children: ["latrecia-a-robinson", "nathan-eugene-horne", "paula-renae-horne"],
+                childrenCount: 3,
+                notes: "Eldest Living",
+                details: "Daughter of Charlie Davis, eldest living member of the family"
+            },
+            
+            // Generation 5 - Complete all branches
+            "cedric-mars": {
+                name: "Cedric R. Mars",
+                generation: 5,
+                status: "living",
+                parent: "Evelyn Davis Mars",
+                born: "March 30, 1970",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Evelyn Davis Mars"
+            },
+            "deidra-mars-mays": {
+                name: "Deidra Mars Mays",
+                generation: 5,
+                status: "living",
+                parent: "Evelyn Davis Mars",
+                born: "January 27, 1973",
+                children: ["dekeia-mays", "kierra-mays"],
+                childrenCount: 2,
+                details: "Daughter of Evelyn Davis Mars"
+            },
+            "deandra-carter-bryson": {
+                name: "Deandra R. Carter Bryson",
+                generation: 5,
+                status: "living",
+                parent: "Gertha R. Davis Carter",
+                children: ["joshua-carter-bryson"],
+                childrenCount: 1,
+                details: "Daughter of Gertha R. Davis Carter"
+            },
+            "angeline-wilson-collins": {
+                name: "Angeline Wilson Collins",
+                generation: 5,
+                status: "living",
+                parent: "Hettie Marie Davis Rush",
+                children: ["martina-w-myles", "tony-collins-jr"],
+                childrenCount: 2,
+                details: "Daughter of Hettie Marie Davis Rush"
+            },
+            "cassandra-wilson-thompson": {
+                name: "Cassandra Wilson Thompson",
+                generation: 5,
+                status: "living",
+                parent: "Hettie Marie Davis Rush",
+                children: ["lemelvin-ben", "treivonte-thompson"],
+                childrenCount: 2,
+                details: "Daughter of Hettie Marie Davis Rush"
+            },
+            "eddie-wilson-jr": {
+                name: "Eddie Wilson Jr.",
+                generation: 5,
+                status: "living",
+                parent: "Hettie Marie Davis Rush",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Hettie Marie Davis Rush"
+            },
+            "dorothy-davis-ashley": {
+                name: "Dorothy L. Davis Ashley",
+                generation: 5,
+                status: "living",
+                parent: "James R. Davis",
+                children: ["gerald-ashley", "jamie-ashley", "kirkland-d-ashley", "steadman-ashley"],
+                childrenCount: 4,
+                details: "Daughter of James R. Davis"
+            },
+            "albert-lee-griffin": {
+                name: "Albert Lee Griffin",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["christopher-griffin", "craig-griffin", "letisha-griffin", "steve-griffin", "terrence-griffin"],
+                childrenCount: 5,
+                details: "Son of Mae Olive Griffin"
+            },
+            "anette-griffin": {
+                name: "Anette Griffin",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["amonte-rush", "andrayl-clark", "anetta-clark", "antrion-meridith"],
+                childrenCount: 4,
+                details: "Daughter of Mae Olive Griffin"
+            },
+            "bernard-griffin": {
+                name: "Bernard Griffin",
+                generation: 5,
+                status: "deceased",
+                parent: "Mae Olive Griffin",
+                spouse: "Rosemary Randle Griffin",
+                born: "March 1, 1965",
+                died: "March 25, 2023",
+                children: ["dekotah-marie-hannah", "jayla-lyons", "jeremee-bernard-griffin", "jordon-harrison-griffin"],
+                childrenCount: 4,
+                details: "Son of Mae Olive Griffin, recently deceased"
+            },
+            "clarence-griffin": {
+                name: "Clarence Griffin",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["lebena-griffin", "shay-griffin"],
+                childrenCount: 2,
+                details: "Son of Mae Olive Griffin"
+            },
+            "eugene-griffin": {
+                name: "Eugene Griffin",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["issac-griffin", "jaquarrious-griffin", "vernita-riley"],
+                childrenCount: 3,
+                details: "Son of Mae Olive Griffin"
+            },
+            "mae-ruthie-griffin": {
+                name: "Mae Ruthie Griffin",
+                generation: 5,
+                status: "deceased",
+                parent: "Mae Olive Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Mae Olive Griffin"
+            },
+            "olive-fairley": {
+                name: "Olive Fairley",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["keneshia-fairley", "natasha-fairley", "rosalind-wilson"],
+                childrenCount: 3,
+                details: "Daughter of Mae Olive Griffin"
+            },
+            "robert-charles-griffin": {
+                name: "Robert Charles Griffin",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["jetarra-griffin"],
+                childrenCount: 1,
+                details: "Son of Mae Olive Griffin"
+            },
+            "rubie-p-brown": {
+                name: "Rubie P. Brown",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["antwan-brown", "ronecia-brown"],
+                childrenCount: 2,
+                details: "Daughter of Mae Olive Griffin"
+            },
+            "rufus-griffin": {
+                name: "Rufus Griffin",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["karla-mcdaniels", "oryan-griffin", "regina-griffin", "troy-griffin"],
+                childrenCount: 4,
+                details: "Son of Mae Olive Griffin"
+            },
+            "wavis-prince": {
+                name: "Wavis Prince",
+                generation: 5,
+                status: "living",
+                parent: "Mae Olive Griffin",
+                children: ["macori-prince"],
+                childrenCount: 1,
+                details: "Daughter of Mae Olive Griffin"
+            },
+            "willie-j-griffin": {
+                name: "Willie J. Griffin",
+                generation: 5,
+                status: "deceased",
+                parent: "Mae Olive Griffin",
+                children: ["phyllis-griffin", "shundria-griffin", "willis-griffin"],
+                childrenCount: 3,
+                details: "Son of Mae Olive Griffin"
+            },
+            "john-bertrand-tartt": {
+                name: "John Bertrand Tartt",
+                generation: 5,
+                status: "living",
+                parent: "Mildred Tartt",
+                children: ["jhacoby-clinton-tartt"],
+                childrenCount: 1,
+                details: "Son of Mildred Tartt"
+            },
+            "reginald-tremaine-tartt": {
+                name: "Reginald Tremaine Tartt",
+                generation: 5,
+                status: "living",
+                parent: "Mildred Tartt",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Mildred Tartt"
+            },
+            "brenda-davis": {
+                name: "Brenda Davis",
+                generation: 5,
+                status: "living",
+                parent: "Otis Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Otis Davis"
+            },
+            "katrina-d-beach": {
+                name: "Katrina D. Beach",
+                generation: 5,
+                status: "living",
+                parent: "Otis Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Otis Davis"
+            },
+            "pamela-hill": {
+                name: "Pamela Hill",
+                generation: 5,
+                status: "living",
+                parent: "Otis Davis",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Otis Davis"
+            },
+            "alfred-h-perkins-jr": {
+                name: "Alfred H. Perkins Jr.",
+                generation: 5,
+                status: "living",
+                parent: "Pearlie Ann Davis Perkins",
+                children: ["abeni-rose-perkins", "daryl-alfred-perkins"],
+                childrenCount: 2,
+                details: "Son of Pearlie Ann Davis Perkins"
+            },
+            "gwen-y-perkins-evans": {
+                name: "Gwen Y. Perkins Evans",
+                generation: 5,
+                status: "living",
+                parent: "Pearlie Ann Davis Perkins",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Pearlie Ann Davis Perkins"
+            },
+            "nicole-cherese-perkins": {
+                name: "Nicole Cherese Perkins",
+                generation: 5,
+                status: "living",
+                parent: "Pearlie Ann Davis Perkins",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Pearlie Ann Davis Perkins"
+            },
+            "latrecia-a-robinson": {
+                name: "Latrecia A. Robinson",
+                generation: 5,
+                status: "living",
+                parent: "Rosie Lee Davis Horne",
+                children: ["lebrittania-robinson"],
+                childrenCount: 1,
+                details: "Daughter of Rosie Lee Davis Horne"
+            },
+            "nathan-eugene-horne": {
+                name: "Nathan Eugene Horne",
+                generation: 5,
+                status: "living",
+                parent: "Rosie Lee Davis Horne",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Rosie Lee Davis Horne"
+            },
+            "paula-renae-horne": {
+                name: "Paula Renae Horne",
+                generation: 5,
+                status: "living",
+                parent: "Rosie Lee Davis Horne",
+                children: ["akhaila-dior-horne"],
+                childrenCount: 1,
+                details: "Daughter of Rosie Lee Davis Horne"
+            },
+            
+            // Generation 6 - Complete all branches
+            "dekeia-mays": {
+                name: "Dekeia Mays",
+                generation: 6,
+                status: "living",
+                parent: "Deidra Mars Mays",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Deidra Mars Mays"
+            },
+            "kierra-mays": {
+                name: "Kierra Mays",
+                generation: 6,
+                status: "living",
+                parent: "Deidra Mars Mays",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Deidra Mars Mays"
+            },
+            "joshua-carter-bryson": {
+                name: "Joshua Carter Bryson",
+                generation: 6,
+                status: "living",
+                parent: "Deandra R. Carter Bryson",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Deandra R. Carter Bryson"
+            },
+            "martina-w-myles": {
+                name: "Martina W. Myles",
+                generation: 6,
+                status: "living",
+                parent: "Angeline Wilson Collins",
+                children: ["erwin-myles-jr"],
+                childrenCount: 1,
+                details: "Daughter of Angeline Wilson Collins"
+            },
+            "tony-collins-jr": {
+                name: "Tony Collins Jr.",
+                generation: 6,
+                status: "living",
+                parent: "Angeline Wilson Collins",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Angeline Wilson Collins"
+            },
+            "lemelvin-ben": {
+                name: "LeMelvin Ben",
+                generation: 6,
+                status: "living",
+                parent: "Cassandra Wilson Thompson",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Cassandra Wilson Thompson"
+            },
+            "treivonte-thompson": {
+                name: "Treivonte' Thompson",
+                generation: 6,
+                status: "living",
+                parent: "Cassandra Wilson Thompson",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Cassandra Wilson Thompson"
+            },
+            "gerald-ashley": {
+                name: "Gerald Ashley",
+                generation: 6,
+                status: "living",
+                parent: "Dorothy L. Davis Ashley",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Dorothy L. Davis Ashley"
+            },
+            "jamie-ashley": {
+                name: "Jamie Ashley",
+                generation: 6,
+                status: "living",
+                parent: "Dorothy L. Davis Ashley",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Dorothy L. Davis Ashley"
+            },
+            "kirkland-d-ashley": {
+                name: "Kirkland D. Ashley",
+                generation: 6,
+                status: "living",
+                parent: "Dorothy L. Davis Ashley",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Dorothy L. Davis Ashley"
+            },
+            "steadman-ashley": {
+                name: "Steadman Ashley",
+                generation: 6,
+                status: "living",
+                parent: "Dorothy L. Davis Ashley",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Dorothy L. Davis Ashley"
+            },
+            "christopher-griffin": {
+                name: "Christopher Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Albert Lee Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Albert Lee Griffin"
+            },
+            "craig-griffin": {
+                name: "Craig Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Albert Lee Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Albert Lee Griffin"
+            },
+            "letisha-griffin": {
+                name: "Letisha Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Albert Lee Griffin",
+                children: ["nakeyuma-griffin"],
+                childrenCount: 1,
+                details: "Daughter of Albert Lee Griffin"
+            },
+            "steve-griffin": {
+                name: "Steve Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Albert Lee Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Albert Lee Griffin"
+            },
+            "terrence-griffin": {
+                name: "Terrence Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Albert Lee Griffin",
+                children: ["quantavious-griffin", "robin-griffin", "terrence-griffin-jr"],
+                childrenCount: 3,
+                details: "Son of Albert Lee Griffin"
+            },
+            "amonte-rush": {
+                name: "Amonte' Rush",
+                generation: 6,
+                status: "living",
+                parent: "Anette Griffin",
+                children: ["quaterius-rush"],
+                childrenCount: 1,
+                details: "Child of Anette Griffin"
+            },
+            "andrayl-clark": {
+                name: "Andrayl Clark",
+                generation: 6,
+                status: "living",
+                parent: "Anette Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Anette Griffin"
+            },
+            "anetta-clark": {
+                name: "Anetta Clark",
+                generation: 6,
+                status: "living",
+                parent: "Anette Griffin",
+                children: ["artenciyah-clark", "eric-clark", "ethan-clark"],
+                childrenCount: 3,
+                details: "Child of Anette Griffin"
+            },
+            "antrion-meridith": {
+                name: "Antrion Meridith",
+                generation: 6,
+                status: "living",
+                parent: "Anette Griffin",
+                children: ["atrinyia-meridith", "ayriona-meridith"],
+                childrenCount: 2,
+                details: "Child of Anette Griffin"
+            },
+            "dekotah-marie-hannah": {
+                name: "De'Kotah Marie Hannah",
+                generation: 6,
+                status: "living",
+                parent: "Bernard Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Bernard Griffin"
+            },
+            "jayla-lyons": {
+                name: "Jayla Lyons",
+                generation: 6,
+                status: "living",
+                parent: "Bernard Griffin",
+                children: ["trinity-lyons"],
+                childrenCount: 1,
+                details: "Daughter of Bernard Griffin"
+            },
+            "jeremee-bernard-griffin": {
+                name: "Jeremee Bernard Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Bernard Griffin",
+                born: "August 2, 1992",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Bernard Griffin"
+            },
+            "jordon-harrison-griffin": {
+                name: "Jordon Harrison Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Bernard Griffin",
+                born: "March 2, 2001",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Bernard Griffin"
+            },
+            "lebena-griffin": {
+                name: "Lebena Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Clarence Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Clarence Griffin"
+            },
+            "shay-griffin": {
+                name: "Shay Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Clarence Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Clarence Griffin"
+            },
+            "issac-griffin": {
+                name: "Issac Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Eugene Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Eugene Griffin"
+            },
+            "jaquarrious-griffin": {
+                name: "Jaquarrious Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Eugene Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Eugene Griffin"
+            },
+            "vernita-riley": {
+                name: "Vernita Riley",
+                generation: 6,
+                status: "living",
+                parent: "Eugene Griffin",
+                born: "June 9, 1979",
+                children: ["jakala-riley", "marquavious-riley"],
+                childrenCount: 2,
+                details: "Daughter of Eugene Griffin"
+            },
+            "keneshia-fairley": {
+                name: "Keneshia Fairley",
+                generation: 6,
+                status: "living",
+                parent: "Olive Fairley",
+                children: ["kidrick-fairley", "ledavian-fairley", "olivia-fairley"],
+                childrenCount: 3,
+                details: "Daughter of Olive Fairley"
+            },
+            "natasha-fairley": {
+                name: "Natasha Fairley",
+                generation: 6,
+                status: "living",
+                parent: "Olive Fairley",
+                children: ["alise-fairley", "alyssa-fairley", "roland-obanner"],
+                childrenCount: 3,
+                details: "Daughter of Olive Fairley"
+            },
+            "rosalind-wilson": {
+                name: "Rosalind Wilson",
+                generation: 6,
+                status: "living",
+                parent: "Olive Fairley",
+                children: ["antonio-wilson", "joshua-wilson", "krishaun-fairley"],
+                childrenCount: 3,
+                details: "Daughter of Olive Fairley"
+            },
+            "jetarra-griffin": {
+                name: "Jetarra Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Robert Charles Griffin",
+                children: ["jamayah-griffin"],
+                childrenCount: 1,
+                details: "Daughter of Robert Charles Griffin"
+            },
+            "antwan-brown": {
+                name: "Antwan Brown",
+                generation: 6,
+                status: "living",
+                parent: "Rubie P. Brown",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Rubie P. Brown"
+            },
+            "ronecia-brown": {
+                name: "Ronecia Brown",
+                generation: 6,
+                status: "living",
+                parent: "Rubie P. Brown",
+                children: ["landforth-brown", "landon-brown", "landrick-brown"],
+                childrenCount: 3,
+                details: "Daughter of Rubie P. Brown"
+            },
+            "karla-mcdaniels": {
+                name: "Karla McDaniels",
+                generation: 6,
+                status: "living",
+                parent: "Rufus Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Rufus Griffin"
+            },
+            "oryan-griffin": {
+                name: "O'Ryan Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Rufus Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Rufus Griffin"
+            },
+            "regina-griffin": {
+                name: "Regina Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Rufus Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Rufus Griffin"
+            },
+            "troy-griffin": {
+                name: "Troy Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Rufus Griffin",
+                children: ["jalen-troy"],
+                childrenCount: 1,
+                details: "Son of Rufus Griffin"
+            },
+            "macori-prince": {
+                name: "Macori Prince",
+                generation: 6,
+                status: "living",
+                parent: "Wavis Prince",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Wavis Prince"
+            },
+            "phyllis-griffin": {
+                name: "Phyllis Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Willie J. Griffin",
+                children: ["deonte-griffin", "tyshia-d-griffin"],
+                childrenCount: 2,
+                details: "Daughter of Willie J. Griffin"
+            },
+            "shundria-griffin": {
+                name: "Shundria Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Willie J. Griffin",
+                children: ["demetrias-griffin", "jamayl-griffin", "laquanda-griffin", "lekedra-griffin", "tvarious-t-griffin"],
+                childrenCount: 5,
+                details: "Daughter of Willie J. Griffin"
+            },
+            "willis-griffin": {
+                name: "Willis Griffin",
+                generation: 6,
+                status: "living",
+                parent: "Willie J. Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Willie J. Griffin"
+            },
+            "jhacoby-clinton-tartt": {
+                name: "Jhacoby Clinton Tartt",
+                generation: 6,
+                status: "living",
+                parent: "John Bertrand Tartt",
+                children: [],
+                childrenCount: 0,
+                details: "Son of John Bertrand Tartt"
+            },
+            "abeni-rose-perkins": {
+                name: "Abeni Rose Perkins",
+                generation: 6,
+                status: "living",
+                parent: "Alfred H. Perkins Jr.",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Alfred H. Perkins Jr."
+            },
+            "daryl-alfred-perkins": {
+                name: "Daryl Alfred Perkins",
+                generation: 6,
+                status: "living",
+                parent: "Alfred H. Perkins Jr.",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Alfred H. Perkins Jr."
+            },
+            "lebrittania-robinson": {
+                name: "LeBrittania Robinson",
+                generation: 6,
+                status: "living",
+                parent: "Latrecia A. Robinson",
+                children: ["jamariez-robinson"],
+                childrenCount: 1,
+                details: "Daughter of Latrecia A. Robinson"
+            },
+            "akhaila-dior-horne": {
+                name: "Akhaila Dior Horne",
+                generation: 6,
+                status: "living",
+                parent: "Paula Renae Horne",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Paula Renae Horne"
+            },
+            
+            // Generation 7 - The youngest generation (complete)
+            "erwin-myles-jr": {
+                name: "Erwin Myles Jr.",
+                generation: 7,
+                status: "living",
+                parent: "Martina W. Myles",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Martina W. Myles"
+            },
+            "nakeyuma-griffin": {
+                name: "Nakeyuma Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Letisha Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Letisha Griffin"
+            },
+            "quantavious-griffin": {
+                name: "Quantavious Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Terrence Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Terrence Griffin"
+            },
+            "robin-griffin": {
+                name: "Robin Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Terrence Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Terrence Griffin"
+            },
+            "terrence-griffin-jr": {
+                name: "Terrence Griffin Jr.",
+                generation: 7,
+                status: "living",
+                parent: "Terrence Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Terrence Griffin"
+            },
+            "quaterius-rush": {
+                name: "Quaterius Rush",
+                generation: 7,
+                status: "living",
+                parent: "Amonte' Rush",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Amonte' Rush"
+            },
+            "artenciyah-clark": {
+                name: "Artenciyah Clark",
+                generation: 7,
+                status: "living",
+                parent: "Anetta Clark",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Anetta Clark"
+            },
+            "eric-clark": {
+                name: "Eric Clark",
+                generation: 7,
+                status: "living",
+                parent: "Anetta Clark",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Anetta Clark"
+            },
+            "ethan-clark": {
+                name: "Ethan Clark",
+                generation: 7,
+                status: "living",
+                parent: "Anetta Clark",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Anetta Clark"
+            },
+            "atrinyia-meridith": {
+                name: "Atrinyia Meridith",
+                generation: 7,
+                status: "living",
+                parent: "Antrion Meridith",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Antrion Meridith"
+            },
+            "ayriona-meridith": {
+                name: "Ayriona Meridith",
+                generation: 7,
+                status: "living",
+                parent: "Antrion Meridith",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Antrion Meridith"
+            },
+            "trinity-lyons": {
+                name: "Trinity Lyons",
+                generation: 7,
+                status: "living",
+                parent: "Jayla Lyons",
+                children: [],
+                childrenCount: 0,
+                details: "Daughter of Jayla Lyons"
+            },
+            "jakala-riley": {
+                name: "Jakala Riley",
+                generation: 7,
+                status: "living",
+                parent: "Vernita Riley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Vernita Riley"
+            },
+            "marquavious-riley": {
+                name: "Marquavious Riley",
+                generation: 7,
+                status: "living",
+                parent: "Vernita Riley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Vernita Riley"
+            },
+            "kidrick-fairley": {
+                name: "Kidrick Fairley",
+                generation: 7,
+                status: "living",
+                parent: "Keneshia Fairley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Keneshia Fairley"
+            },
+            "ledavian-fairley": {
+                name: "Ledavian Fairley",
+                generation: 7,
+                status: "living",
+                parent: "Keneshia Fairley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Keneshia Fairley"
+            },
+            "olivia-fairley": {
+                name: "Olivia Fairley",
+                generation: 7,
+                status: "living",
+                parent: "Keneshia Fairley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Keneshia Fairley"
+            },
+            "alise-fairley": {
+                name: "Alise Fairley",
+                generation: 7,
+                status: "living",
+                parent: "Natasha Fairley",
+                children: ["armond-tank-shannon-iii"],
+                childrenCount: 1,
+                details: "Child of Natasha Fairley"
+            },
+            "alyssa-fairley": {
+                name: "Alyssa Fairley",
+                generation: 7,
+                status: "living",
+                parent: "Natasha Fairley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Natasha Fairley"
+            },
+            "roland-obanner": {
+                name: "Roland Obanner",
+                generation: 7,
+                status: "living",
+                parent: "Natasha Fairley",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Natasha Fairley"
+            },
+            "antonio-wilson": {
+                name: "Antonio Wilson",
+                generation: 7,
+                status: "living",
+                parent: "Rosalind Wilson",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Rosalind Wilson"
+            },
+            "joshua-wilson": {
+                name: "Joshua Wilson",
+                generation: 7,
+                status: "living",
+                parent: "Rosalind Wilson",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Rosalind Wilson"
+            },
+            "krishaun-fairley": {
+                name: "Krishaun Fairley",
+                generation: 7,
+                status: "living",
+                parent: "Rosalind Wilson",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Rosalind Wilson"
+            },
+            "jamayah-griffin": {
+                name: "Jamayah Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Jetarra Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Jetarra Griffin"
+            },
+            "landforth-brown": {
+                name: "Landforth Brown",
+                generation: 7,
+                status: "living",
+                parent: "Ronecia Brown",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Ronecia Brown"
+            },
+            "landon-brown": {
+                name: "Landon Brown",
+                generation: 7,
+                status: "living",
+                parent: "Ronecia Brown",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Ronecia Brown"
+            },
+            "landrick-brown": {
+                name: "Landrick Brown",
+                generation: 7,
+                status: "living",
+                parent: "Ronecia Brown",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Ronecia Brown"
+            },
+            "jalen-troy": {
+                name: "Jalen Troy",
+                generation: 7,
+                status: "living",
+                parent: "Troy Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Troy Griffin"
+            },
+            "deonte-griffin": {
+                name: "Deonte' Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Phyllis Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Phyllis Griffin"
+            },
+            "tyshia-d-griffin": {
+                name: "Tyshia D. Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Phyllis Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Phyllis Griffin"
+            },
+            "demetrias-griffin": {
+                name: "Demetrias Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Shundria Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Shundria Griffin"
+            },
+            "jamayl-griffin": {
+                name: "Jamayl Griffin",
+                generation: 7,
+                status: "deceased",
+                parent: "Shundria Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Shundria Griffin"
+            },
+            "laquanda-griffin": {
+                name: "Laquanda Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Shundria Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Shundria Griffin"
+            },
+            "lekedra-griffin": {
+                name: "LeKedra Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Shundria Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Shundria Griffin"
+            },
+            "tvarious-t-griffin": {
+                name: "T'vorious T. Griffin",
+                generation: 7,
+                status: "living",
+                parent: "Shundria Griffin",
+                children: [],
+                childrenCount: 0,
+                details: "Child of Shundria Griffin"
+            },
+            "jamariez-robinson": {
+                name: "Jamariez Robinson",
+                generation: 7,
+                status: "living",
+                parent: "LeBrittania Robinson",
+                children: [],
+                childrenCount: 0,
+                details: "Child of LeBrittania Robinson"
+            },
+            
+            // Generation 8 - The newest generation
+            "armond-tank-shannon-iii": {
+                name: "Armond \"Tank\" Shannon III",
+                generation: 8,
+                status: "living",
+                parent: "Alise Fairley",
+                born: "September 4, 2013",
+                children: [],
+                childrenCount: 0,
+                details: "Son of Alise Fairley"
+            }
+        };
+
+        // Generation organization
+        const generationMapping = {
+            1: "generation-1",
+            2: "generation-2", 
+            3: "generation-3",
+            4: "generation-4",
+            5: "generation-5",
+            6: "generation-6",
+            7: "generation-7",
+            8: "generation-8"
+        };
+
+        // Table of contents functionality
+        const tocToggle = document.getElementById('tocToggle');
+        const sidebar = document.getElementById('sidebar');
+        let tocVisible = window.innerWidth > 1024;
+
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.add('hidden');
+        }
+
+        tocToggle.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.toggle('visible');
+            } else {
+                sidebar.classList.toggle('hidden');
+            }
+        });
+
+        // Removed expandPathToTarget function - no longer needed without expand/collapse
+
+        // Helper function to find parent ID more safely
+        function findParentId(parentString) {
+            if (!parentString) return null;
+            
+            // Try exact match first
+            const exactMatch = Object.keys(familyData).find(id => 
+                familyData[id].name === parentString
+            );
+            if (exactMatch) return exactMatch;
+            
+            // Try partial matches more carefully
+            const partialMatch = Object.keys(familyData).find(id => {
+                const name = familyData[id].name;
+                // Check if parent string contains the person's name (for cases like "Richard & Caroline Davis")
+                return parentString.includes(name) && name.length > 3; // Avoid matching very short names
+            });
+            
+            return partialMatch || null;
+        }
+
+        // Find person ID by name
+        function findPersonIdByName(name) {
+            console.log('Looking for person with name:', name);
+            const personId = Object.keys(familyData).find(id => 
+                familyData[id].name === name ||
+                familyData[id].name.toLowerCase() === name.toLowerCase()
+            );
+            console.log('Found person ID:', personId, 'for name:', name);
+            return personId;
+        }
+
+        // Create clickable parent links with directional indicators
+        function createParentLinks(parentString) {
+            if (!parentString) return '';
+            
+            // Handle multiple parents (e.g., "Richard & Caroline Davis")
+            const parentNames = parentString.split(' & ');
+            
+            const links = parentNames.map(parentName => {
+                const trimmedName = parentName.trim();
+                const personId = findPersonIdByName(trimmedName);
+                
+                if (personId) {
+                    console.log('Creating parent link for:', trimmedName, 'ID:', personId);
+                    return `<span class="parent-link" data-person-id="${personId}" title="⬆️ Navigate to parent: ${trimmedName}">⬆️ ${trimmedName}</span>`;
+                } else {
+                    console.warn('Parent ID not found for:', trimmedName);
+                    return trimmedName;
+                }
+            });
+            
+            return links.join(' & ');
+        }
+
+        // Create clickable children links with directional indicators
+        function createChildrenLinks(childrenArray) {
+            if (!childrenArray || !Array.isArray(childrenArray) || childrenArray.length === 0) {
+                return '';
+            }
+            
+            console.log('🔗 Creating children links for:', childrenArray.length, 'children');
+            
+            const childLinks = childrenArray.map(childId => {
+                const childData = familyData[childId];
+                if (childData) {
+                    console.log('✅ Creating child link for:', childId, 'name:', childData.name);
+                    return `<span class="child-link" data-person-id="${childId}" title="⬇️ Navigate to child: ${childData.name}">⬇️ ${childData.name}</span>`;
+                } else {
+                    console.warn('❌ Child data not found for:', childId);
+                    return `<span class="child-link-missing" title="Data missing for ${childId}">${childId}</span>`;
+                }
+            });
+            
+            const result = childLinks.join('');
+            console.log('✅ Generated children links HTML length:', result.length);
+            
+            // Verify each child has proper attributes
+            const linkCount = (result.match(/data-person-id="/g) || []).length;
+            console.log('📊 Created', linkCount, 'child links with data-person-id attributes');
+            
+            return result;
+        }
+
+        // Context-aware navigation to person with enhanced UX
+        function navigateToPersonCard(personId, navigationContext = 'general') {
+            console.log('🚀 === navigateToPersonCard called ===');
+            console.log('📍 Target Person ID:', personId);
+            console.log('🔄 Navigation Context:', navigationContext);
+            
+            if (!personId || !familyData[personId]) {
+                console.error('❌ Person not found in familyData:', personId);
+                alert(`Person "${personId}" not found in family tree data.`);
+                return;
+            }
+            
+            const personData = familyData[personId];
+            console.log('👤 Navigating to:', personData.name, '(Generation', personData.generation + ')');
+            
+            // Wait for tree to be initialized if needed
+            const checkAndNavigate = () => {
+                // Find the best target element based on context
+                let targetElement = findBestTargetElement(personId, personData, navigationContext);
+                
+                console.log('🔍 Looking for best DOM element for:', personId);
+                console.log('🎯 Element found:', !!targetElement);
+                
+                if (targetElement) {
+                    // Check if element is already in viewport
+                    const rect = targetElement.getBoundingClientRect();
+                    const isInViewport = (
+                        rect.top >= 100 && // Account for header
+                        rect.left >= 0 &&
+                        rect.bottom <= window.innerHeight - 50 &&
+                        rect.right <= window.innerWidth
+                    );
+                    
+                    console.log('👁️ Element already in good viewport:', isInViewport);
+                    
+                    // Always scroll, but use different behavior based on visibility and context
+                    if (isInViewport && navigationContext === 'same-generation') {
+                        // If already visible and same generation, do gentle centering
+                        console.log('🎯 Element visible, gentle centering...');
+                        targetElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center',
+                            inline: 'center'
+                        });
+                    } else {
+                        // For cross-generation navigation or when not visible, scroll more prominently
+                        console.log('📜 Cross-generation or not visible, prominent scrolling...');
+                        targetElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center',
+                            inline: 'nearest'
+                        });
+                    }
+                    
+                    // Enhanced visual feedback based on navigation type
+                    console.log('✨ Adding context-aware highlight effect');
+                    
+                    // Remove any existing highlights first
+                    document.querySelectorAll('.highlighted').forEach(el => {
+                        el.classList.remove('highlighted');
+                    });
+                    
+                    // Add highlight with context-specific effect
+                    targetElement.classList.add('highlighted');
+                    
+                    // Different colors for different navigation contexts
+                    let highlightColor = '#22c55e'; // Default green
+                    if (navigationContext === 'child-to-parent') {
+                        highlightColor = '#3b82f6'; // Blue for going up generations
+                    } else if (navigationContext === 'parent-to-child') {
+                        highlightColor = '#f59e0b'; // Orange for going down generations
+                    }
+                    
+                    // Temporarily change the border to make it more obvious
+                    const originalBorder = targetElement.style.border;
+                    targetElement.style.border = `3px solid ${highlightColor}`;
+                    targetElement.style.boxShadow = `0 0 20px ${highlightColor}80`;
+                    
+                    // Show a temporary notification with context
+                    showNavigationNotification(personData.name, personData.generation, navigationContext);
+                    
+                    // Reset after a delay
+                    setTimeout(() => {
+                        targetElement.classList.remove('highlighted');
+                        targetElement.style.border = originalBorder;
+                        targetElement.style.boxShadow = '';
+                    }, 3000);
+                    
+                    console.log('🎉 Successfully navigated to:', personData.name);
+                } else {
+                    // Check if tree is still loading
+                    const loadingElement = document.getElementById('loading');
+                    if (loadingElement && loadingElement.style.display !== 'none') {
+                        console.log('⏳ Tree still loading, waiting...');
+                        setTimeout(checkAndNavigate, 500);
+                    } else {
+                        console.error('💥 Element not found for:', personId);
+                        
+                        // Enhanced debugging
+                        const allPersonCards = document.querySelectorAll('[data-person-id]');
+                        console.log('📋 Total elements with data-person-id:', allPersonCards.length);
+                        
+                        alert(`Navigation failed: Could not find "${personData.name}" in the displayed family tree.`);
+                    }
+                }
+            };
+            
+            checkAndNavigate();
+        }
+
+        // Find the best target element based on navigation context
+        function findBestTargetElement(personId, personData, navigationContext) {
+            // Get all elements with this person ID
+            const allElements = document.querySelectorAll(`[data-person-id="${personId}"]`);
+            console.log(`🔍 Found ${allElements.length} elements with ID: ${personId}`);
+            
+            if (allElements.length === 0) {
+                return null;
+            }
+            
+            if (allElements.length === 1) {
+                return allElements[0];
+            }
+            
+            // Multiple elements found - choose the best one based on context
+            let bestElement = null;
+            
+            // Priority 1: Look for the person's main card in their primary generation section
+            const mainCards = Array.from(allElements).filter(el => {
+                return el.classList.contains('person-card') && 
+                       el.closest(`#generation-${personData.generation}`);
+            });
+            
+            if (mainCards.length > 0) {
+                bestElement = mainCards[0];
+                console.log('✅ Found main card in primary generation section');
+            } else {
+                // Priority 2: Any person card
+                const personCards = Array.from(allElements).filter(el => 
+                    el.classList.contains('person-card')
+                );
+                
+                if (personCards.length > 0) {
+                    bestElement = personCards[0];
+                    console.log('✅ Found person card');
+                } else {
+                    // Priority 3: First available element
+                    bestElement = allElements[0];
+                    console.log('⚠️ Using first available element');
+                }
+            }
+            
+            return bestElement;
+        }
+
+                 // Show quick notification for immediate feedback
+         function showQuickNotification(message, type = 'info') {
+             const notification = document.createElement('div');
+             notification.style.cssText = `
+                 position: fixed;
+                 top: 50%;
+                 left: 50%;
+                 transform: translate(-50%, -50%);
+                 background: ${type === 'error' ? '#ef4444' : '#3b82f6'};
+                 color: white;
+                 padding: 8px 16px;
+                 border-radius: 6px;
+                 font-size: 14px;
+                 font-weight: 500;
+                 z-index: 10000;
+                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                 animation: quickFade 1s ease-out;
+                 pointer-events: none;
+             `;
+             notification.textContent = message;
+             
+             // Add animation styles if not present
+             if (!document.getElementById('quick-notification-styles')) {
+                 const style = document.createElement('style');
+                 style.id = 'quick-notification-styles';
+                 style.textContent = `
+                     @keyframes quickFade {
+                         0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                         20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                         80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                         100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+                     }
+                 `;
+                 document.head.appendChild(style);
+             }
+             
+             document.body.appendChild(notification);
+             
+             setTimeout(() => {
+                 if (notification.parentNode) {
+                     notification.remove();
+                 }
+             }, 1000);
+         }
+
+                  // Show navigation notification with context
+         function showNavigationNotification(personName, generation, navigationContext = 'general') {
+             // Remove any existing notification
+             const existingNotification = document.getElementById('nav-notification');
+             if (existingNotification) {
+                 existingNotification.remove();
+             }
+             
+             // Context-specific styling
+             const contextConfig = {
+                 'child-to-parent': {
+                     gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                     icon: '⬆️',
+                     title: 'Navigated to Parent:'
+                 },
+                 'parent-to-child': {
+                     gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                     icon: '⬇️',
+                     title: 'Navigated to Child:'
+                 },
+                 'same-generation': {
+                     gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                     icon: '↔️',
+                     title: 'Navigated to Sibling:'
+                 },
+                 'general': {
+                     gradient: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                     icon: '🎯',
+                     title: 'Navigated to:'
+                 }
+             };
+             
+             const config = contextConfig[navigationContext] || contextConfig['general'];
+             
+             // Create notification element
+             const notification = document.createElement('div');
+             notification.id = 'nav-notification';
+             notification.innerHTML = `
+                 <div style="
+                     position: fixed;
+                     top: 100px;
+                     right: 20px;
+                     background: ${config.gradient};
+                     color: white;
+                     padding: 12px 20px;
+                     border-radius: 8px;
+                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                     z-index: 1000;
+                     font-weight: 600;
+                     animation: slideIn 0.3s ease-out;
+                     max-width: 300px;
+                     border: 2px solid rgba(255, 255, 255, 0.2);
+                 ">
+                     <div style="font-size: 14px; margin-bottom: 4px;">
+                         ${config.icon} ${config.title}
+                     </div>
+                     <div style="font-size: 16px;">
+                         ${personName}
+                     </div>
+                     <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">
+                         Generation ${generation}
+                     </div>
+                 </div>
+             `;
+             
+             // Add CSS animation if not already present
+             if (!document.getElementById('nav-notification-styles')) {
+                 const style = document.createElement('style');
+                 style.id = 'nav-notification-styles';
+                 style.textContent = `
+                     @keyframes slideIn {
+                         from {
+                             transform: translateX(100%);
+                             opacity: 0;
+                         }
+                         to {
+                             transform: translateX(0);
+                             opacity: 1;
+                         }
+                     }
+                     @keyframes slideOut {
+                         from {
+                             transform: translateX(0);
+                             opacity: 1;
+                         }
+                         to {
+                             transform: translateX(100%);
+                             opacity: 0;
+                         }
+                     }
+                 `;
+                 document.head.appendChild(style);
+             }
+             
+             document.body.appendChild(notification);
+             
+             // Auto-remove after 2.5 seconds
+             setTimeout(() => {
+                 if (notification.parentNode) {
+                     notification.firstElementChild.style.animation = 'slideOut 0.3s ease-in';
+                     setTimeout(() => {
+                         if (notification.parentNode) {
+                             notification.remove();
+                         }
+                     }, 300);
+                 }
+             }, 2500);
+         }
+
+        // Debounce function to prevent rapid clicking
+        let tocClickTimeout;
+
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const body = document.body;
+
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', currentTheme);
+        updateThemeButton();
+
+        themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('theme', currentTheme);
+            updateThemeButton();
+        });
+
+        function updateThemeButton() {
+            if (currentTheme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
+        // Tree management
+        const treeContainer = document.getElementById('treeContainer');
+        const loading = document.getElementById('loading');
+        const searchInput = document.getElementById('searchInput');
+
+        // Removed expandedNodes - no longer needed without expand/collapse
+
+        function createGenerationSection(generation) {
+            const section = document.createElement('div');
+            section.className = 'generation-section';
+            section.id = `generation-${generation}`;
+            
+            const generationTitles = {
+                1: { title: "Generation 1", subtitle: "The Founding Generation - Richard & Caroline Davis" },
+                2: { title: "Generation 2", subtitle: "The 8 Children of Richard & Caroline Davis" },
+                3: { title: "Generation 3", subtitle: "The Charles Davis Line - 13 Children" },
+                4: { title: "Generation 4", subtitle: "The Charlie Davis Line - 11 Children" },
+                5: { title: "Generation 5", subtitle: "The Branches - 24 Members" },
+                6: { title: "Generation 6", subtitle: "Modern Era - 58 Members" },
+                7: { title: "Generation 7", subtitle: "Current Generation - 36 Members" },
+                8: { title: "Generation 8", subtitle: "The Next Generation - 1 Member" }
+            };
+
+            const genInfo = generationTitles[generation];
+            
+            section.innerHTML = `
+                <div class="generation-header">
+                    <div class="generation-title">${genInfo.title}</div>
+                    <div class="generation-subtitle">${genInfo.subtitle}</div>
+                </div>
+                <div class="generation-members" id="gen-${generation}-members"></div>
+            `;
+            
+            return section;
+        }
+
+        function createPersonCard(personId, personData) {
+            const card = document.createElement('div');
+            card.className = 'tree-node fade-in';
+            card.innerHTML = `
+                <div class="person-card ${personData.status}" data-person-id="${personId}">
+                    <div class="generation-badge">Generation ${personData.generation}</div>
+                    <div class="person-header">
+                        <div>
+                            <div class="person-name">${personData.name}</div>
+                            <div class="status-badge ${personData.status}">
+                                ${personData.status === 'living' ? '🟢' : '⚫'} ${personData.status}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="person-details">
+                        ${personData.details}
+                    </div>
+                    <div class="person-meta">
+                        ${personData.parent ? `<div class="meta-item">👨‍👩‍👧‍👦 Parent: ${createParentLinks(personData.parent)}</div>` : ''}
+                        ${personData.born ? `<div class="meta-item">🎂 Born: ${personData.born}</div>` : ''}
+                        ${personData.died ? `<div class="meta-item">🕊️ Died: ${personData.died}</div>` : ''}
+                        ${personData.childrenCount > 0 ? `<div class="meta-item">👶 Children: ${personData.childrenCount}</div>` : ''}
+                    </div>
+                    ${personData.spouse ? `<div class="spouse-info">💍 Married to: ${personData.spouse}</div>` : ''}
+                    ${personData.children && personData.children.length > 0 ? `
+                        <div class="children-list">
+                            <div class="children-list-title">👶 Children (${personData.childrenCount}):</div>
+                            <div>${createChildrenLinks(personData.children)}</div>
+                        </div>
+                    ` : ''}
+                    ${personData.notes ? `<div class="notes">${personData.notes}</div>` : ''}
+                </div>
+            `;
+            return card;
+        }
+
+        // Removed renderChildren and toggleNode functions - no longer needed without expand/collapse
+
+        // Unified navigation click handler
+        document.addEventListener('click', (e) => {
+            console.log('🖱️ Click event on:', e.target.tagName, 'with classes:', e.target.className);
+            
+            // Find the actual clickable element (direct or ancestor)
+            let clickableElement = null;
+            
+            // Check if clicked element itself is a navigation link
+            if (e.target.classList.contains('parent-link') || e.target.classList.contains('child-link')) {
+                clickableElement = e.target;
+            } else {
+                // Check if we clicked inside a navigation link
+                clickableElement = e.target.closest('.parent-link, .child-link');
+            }
+            
+            if (clickableElement) {
+                const linkType = clickableElement.classList.contains('parent-link') ? 'parent' : 'child';
+                console.log(`🔗 ${linkType} link clicked:`, clickableElement.textContent.trim());
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Add immediate visual feedback
+                clickableElement.classList.add('clicked');
+                setTimeout(() => {
+                    clickableElement.classList.remove('clicked');
+                }, 600);
+                
+                const personId = clickableElement.getAttribute('data-person-id');
+                console.log('🆔 Person ID from link:', personId);
+                
+                if (personId && familyData[personId]) {
+                    const targetPerson = familyData[personId];
+                    console.log('🚀 Navigating to person:', targetPerson.name);
+                    
+                    // Determine navigation context based on link type and generations
+                    let navigationContext = 'general';
+                    const currentPersonCard = clickableElement.closest('.person-card');
+                    
+                    if (currentPersonCard) {
+                        const currentPersonId = currentPersonCard.getAttribute('data-person-id');
+                        const currentPerson = familyData[currentPersonId];
+                        
+                        if (currentPerson && targetPerson) {
+                            if (linkType === 'parent') {
+                                navigationContext = 'child-to-parent';
+                            } else if (linkType === 'child') {
+                                navigationContext = 'parent-to-child';
+                            } else if (currentPerson.generation === targetPerson.generation) {
+                                navigationContext = 'same-generation';
+                            }
+                        }
+                    }
+                    
+                    console.log('🔄 Determined navigation context:', navigationContext);
+                    
+                    // Show immediate feedback that navigation is starting
+                    const contextEmoji = {
+                        'child-to-parent': '⬆️',
+                        'parent-to-child': '⬇️',
+                        'same-generation': '↔️',
+                        'general': '🎯'
+                    };
+                    
+                    showQuickNotification(`${contextEmoji[navigationContext]} Navigating to ${targetPerson.name}...`);
+                    
+                    // Small delay to let the click animation show
+                    setTimeout(() => {
+                        navigateToPersonCard(personId, navigationContext);
+                    }, 150);
+                } else {
+                    console.warn('❌ Invalid or missing person ID:', personId);
+                    showQuickNotification('❌ Person not found', 'error');
+                }
+                return;
+            }
+            
+            console.log('ℹ️ Click not on a navigation link');
+        });
+
+        // Enhanced initializeTree function with completion callback
+        function initializeTree() {
+            console.log('Initializing tree...');
+            setTimeout(() => {
+                console.log('Tree initialization started');
+                loading.style.display = 'none';
+                
+                // Create generation sections
+                for (let gen = 1; gen <= 8; gen++) {
+                    const section = createGenerationSection(gen);
+                    treeContainer.appendChild(section);
+                    
+                    const membersContainer = document.getElementById(`gen-${gen}-members`);
+                    
+                    // Add members to this generation
+                    Object.keys(familyData).forEach(personId => {
+                        const person = familyData[personId];
+                        if (person.generation === gen) {
+                            const card = createPersonCard(personId, person);
+                            membersContainer.appendChild(card);
+                        }
+                    });
+                }
+                
+                console.log('Tree initialization completed');
+                
+                // Verify all person cards are created
+                const allPersonCards = document.querySelectorAll('[data-person-id]');
+                console.log(`Created ${allPersonCards.length} person cards`);
+                
+                // Set up TOC event listeners after tree is created
+                setupTOCEventListeners();
+            }, 1000);
+        }
+
+                // Separate function to set up TOC event listeners
+        function setupTOCEventListeners() {
+            console.log('📋 Setting up TOC event listeners...');
+            
+            // Remove existing listeners and set up new ones
+            document.querySelectorAll('.toc-item').forEach((item, index) => {
+                const target = item.getAttribute('data-target');
+                const text = item.textContent.trim();
+                console.log(`📝 Setting up TOC item ${index}: "${text}" -> ${target}`);
+                
+                // Remove existing listener if any
+                item.removeEventListener('click', tocClickHandler);
+                
+                // Add new listener
+                item.addEventListener('click', tocClickHandler);
+                
+                // Verify the target exists
+                if (target && !target.startsWith('generation-')) {
+                    if (familyData[target]) {
+                        console.log(`✅ TOC target exists: ${target} -> ${familyData[target].name} (Gen ${familyData[target].generation})`);
+                    } else {
+                        console.warn(`❌ TOC target missing: ${target}`);
+                        // Suggest possible matches
+                        const suggestions = Object.keys(familyData).filter(id => 
+                            id.includes(target.split('-')[0]) || 
+                            familyData[id].name.toLowerCase().includes(text.toLowerCase().split(' ')[0])
+                        ).slice(0, 3);
+                        if (suggestions.length > 0) {
+                            console.log(`💡 Possible matches for "${target}":`, suggestions.map(id => 
+                                `${id} (${familyData[id].name})`
+                            ));
+                        }
+                    }
+                }
+            });
+            
+            console.log('✅ TOC event listeners set up completed');
+        }
+
+        // Removed duplicate children link delegation - now handled by unified click handler
+
+        // Separate TOC click handler function
+        function tocClickHandler(e) {
+            console.log('=== TOC CLICK HANDLER ===');
+            console.log('TOC item clicked:', this.getAttribute('data-target'));
+            console.log('TOC item text:', this.textContent);
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Clear any existing timeout
+            if (tocClickTimeout) {
+                clearTimeout(tocClickTimeout);
+            }
+            
+            // Debounce the click
+            tocClickTimeout = setTimeout(() => {
+                const target = this.getAttribute('data-target');
+                console.log('Processing TOC target:', target);
+                
+                if (!target) {
+                    console.warn('No target specified for TOC item');
+                    return;
+                }
+                
+                // Remove active class from all items
+                document.querySelectorAll('.toc-item').forEach(tocItem => {
+                    tocItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+
+                // Handle generation navigation
+                if (target.startsWith('generation-')) {
+                    console.log('🏠 Navigating to generation:', target);
+                    const generationSection = document.getElementById(target);
+                    if (generationSection) {
+                        generationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        console.log('✅ Scrolled to generation section');
+                    } else {
+                        console.warn('❌ Generation section not found:', target);
+                    }
+                } else {
+                    // Handle person navigation
+                    console.log('👤 Attempting to navigate to person:', target);
+                    console.log('Person exists in familyData:', !!familyData[target]);
+                    
+                    if (familyData[target]) {
+                        const person = familyData[target];
+                        console.log('✅ Person found in family data:', person.name, '(Generation', person.generation + ')');
+                        navigateToPersonCard(target);
+                    } else {
+                        console.error('❌ Person not found in family data:', target);
+                        console.log('❌ TOC target does not exist. Check data-target attribute.');
+                        console.log('Available person IDs that start with similar letters:', 
+                            Object.keys(familyData).filter(id => 
+                                id.startsWith(target.charAt(0))
+                            ).slice(0, 10)
+                        );
+                        alert(`Navigation target "${target}" not found. Please check the family tree data.`);
+                    }
+                }
+            }, 100); // 100ms debounce delay
+        }
+
+        // Removed expandAll and collapseAll event listeners - no longer needed without expand/collapse
+
+        document.getElementById('scrollToTop').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        document.getElementById('scrollToBottom').addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            console.log('🔍 Search query:', query);
+            
+            if (query.length === 0) {
+                document.querySelectorAll('.person-card').forEach(card => {
+                    card.style.display = 'block';
+                });
+                return;
+            }
+
+            let foundMatches = 0;
+            document.querySelectorAll('.person-card').forEach(card => {
+                const personId = card.getAttribute('data-person-id');
+                const personData = familyData[personId];
+                
+                if (personData && personData.name.toLowerCase().includes(query)) {
+                    card.style.display = 'block';
+                    foundMatches++;
+                    console.log('🎯 Search match:', personData.name);
+                    
+                    // Navigate to first match if query is specific enough
+                    if (foundMatches === 1 && query.length > 3) {
+                        setTimeout(() => {
+                            navigateToPersonCard(personId);
+                        }, 200);
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            console.log(`📊 Found ${foundMatches} matches for "${query}"`);
+        });
+
+        // Responsive sidebar handling
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('visible');
+                sidebar.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('visible');
+            }
+        });
+
+        // Verify TOC targets exist
+        function verifyTOCTargets() {
+            const tocItems = document.querySelectorAll('.toc-item');
+            const missingTargets = [];
+            
+            tocItems.forEach(item => {
+                const target = item.getAttribute('data-target');
+                if (target && !target.startsWith('generation-')) {
+                    if (!familyData[target]) {
+                        missingTargets.push(target);
+                    }
+                }
+            });
+            
+            if (missingTargets.length > 0) {
+                console.warn('Missing TOC targets:', missingTargets);
+            } else {
+                console.log('All TOC targets verified successfully');
+            }
+        }
+
+        // Initialize the tree
+        initializeTree();
+        
+        // Verify TOC targets after initialization
+        setTimeout(verifyTOCTargets, 1500);
+
+        // Add global test functions for debugging
+        window.testNavigation = function(personId) {
+            console.log('🧪 Testing navigation to:', personId);
+            navigateToPersonCard(personId);
+        };
+
+        window.testTOC = function(target) {
+            console.log('🧪 Testing TOC navigation to:', target);
+            const tocItem = document.querySelector(`[data-target="${target}"]`);
+            if (tocItem) {
+                tocItem.click();
+            } else {
+                console.warn('TOC item not found:', target);
+            }
+        };
+
+        window.listPeople = function() {
+            console.log('👥 All people in family data:');
+            Object.keys(familyData).forEach(id => {
+                const person = familyData[id];
+                console.log(`  ${id} -> ${person.name} (Gen ${person.generation})`);
+            });
+        };
+
+        console.log('🛠️ Debug functions available:');
+        console.log('  testNavigation("person-id") - Test navigation to a person');
+        console.log('  testTOC("target-name") - Test TOC navigation');
+        console.log('  listPeople() - List all people and their IDs');
+    </script>
+</body>
+</html>
